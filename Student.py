@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
+from scipy.stats import mode
 
 np.random.seed(52)
 
@@ -37,6 +38,9 @@ class RandomForestClassifier:
     def predict(self, testing_set):
         if not self.is_fit:
             raise AttributeError("The forest is not fit yet! Consider calling .fit() method.")
+        prediction = np.array([tree.predict(testing_set) for tree in self.forest])
+        majority_votes, _ = mode(prediction, axis=0)
+        return majority_votes.ravel()
 
 
 def convert_embarked(x):
@@ -81,9 +85,11 @@ if __name__ == '__main__':
 
     rfc = RandomForestClassifier(n_trees=10, max_depth=4, min_error=1e-6)
     rfc.fit(X_train, y_train)
-    predictions = rfc.forest[0].predict(X_val)
-    accuracy = accuracy_score(y_val, predictions)
-    print(round(accuracy, 3))
+    predictions = rfc.predict(X_val)
+    # accuracy = accuracy_score(y_val, predictions)
+    # Stage 3 output
+    # print(round(accuracy, 3))
+    print(list(predictions[0:10]))
 
 
 
