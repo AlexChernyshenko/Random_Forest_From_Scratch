@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
@@ -11,11 +12,10 @@ np.random.seed(52)
 
 
 class RandomForestClassifier:
-    def __init__(self, n_trees=10, max_depth=np.iinfo(np.int64).max, min_error=1e-6, random_state=None):
+    def __init__(self, n_trees=1, max_depth=np.iinfo(np.int64).max, min_error=1e-6):
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.min_error = min_error
-        self.random_state = random_state
         self.forest = []
         self.is_fit = False
 
@@ -26,10 +26,10 @@ class RandomForestClassifier:
 
     def fit(self, training_set, testing_set):
 
-        for _ in tqdm(range(self.n_trees), desc='Training Trees'):
+        for _ in tqdm(range(self.n_trees), desc="Training Trees"):
             X_sample, y_sample = self.create_bootstrap(training_set, testing_set)
             tree = DecisionTreeClassifier(max_depth=self.max_depth, max_features='sqrt',
-                                          min_impurity_decrease=self.min_error, random_state=self.random_state)
+                                          min_impurity_decrease=self.min_error)
             tree.fit(X_sample, y_sample)
             self.forest.append(tree)
 
@@ -78,20 +78,48 @@ if __name__ == '__main__':
     # print(list(y_bs[0:10]))
 
     # Stage 1
-    clf = DecisionTreeClassifier()
-    clf.fit(X_train, y_train)
-    prediction_X_val = clf.predict(X_val)
-    test_score = accuracy_score(y_val, prediction_X_val)
+    # clf = DecisionTreeClassifier()
+    # clf.fit(X_train, y_train)
+    # prediction_X_val = clf.predict(X_val)
+    # test_score = accuracy_score(y_val, prediction_X_val)
     # Stage 1 output
 
-    rfc = RandomForestClassifier(n_trees=30, max_depth=11, min_error=1e-6)
-    rfc.fit(X_train, y_train)
-    predictions = rfc.predict(X_val)
-    accuracy = accuracy_score(y_val, predictions)
+    # rfc = RandomForestClassifier(n_trees=30, max_depth=11, min_error=1e-6)
+    # rfc.fit(X_train, y_train)
+    # predictions = rfc.predict(X_val)
+    # accuracy = accuracy_score(y_val, predictions)
+
     # Stage 3 output
     # print(round(accuracy, 3))
+
     # Stage 4 output
     # print(list(predictions[0:10]))
+
     # Stage 5 (1st stage output: 0.797)
-    print('RandomForestClassifier accuracy:', round(accuracy, 3))
-    print('Single DecisionTree accuracy:', round(test_score, 3))
+    # print('RandomForestClassifier accuracy:', round(accuracy, 3))
+    # print('Single DecisionTree accuracy:', round(test_score, 3))
+
+    # Stage 6
+    number_of_trees = 1
+    resulting_accuracy = []
+    number_of_trees_list = []
+
+    while number_of_trees < 600:
+        rfc = RandomForestClassifier(n_trees=number_of_trees)
+        rfc.fit(X_train, y_train)
+        predictions = rfc.predict(X_val)
+        accuracy = accuracy_score(y_val, predictions)
+        rounded_accuracy = round(accuracy, 3)
+        resulting_accuracy.append(rounded_accuracy)
+        number_of_trees_list.append(number_of_trees)
+        number_of_trees += 1
+
+    print(resulting_accuracy[0:20])
+
+    fig, ax = plt.subplots(figsize=(100, 40))
+    fig.suptitle("Dependence of accuracy from the number of trees", fontsize=70)
+    ax.plot(number_of_trees_list, resulting_accuracy, c='r', linewidth=4)
+    ax.set_xlabel("Number of trees", fontsize=50)
+    ax.set_ylabel("Accuracy", fontsize=50)
+    ax.tick_params(axis='both', which='major', labelsize=35)
+    plt.show()
